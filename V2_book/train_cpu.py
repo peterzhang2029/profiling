@@ -1,6 +1,7 @@
 import math
 import os
 import time
+import datetime
 
 import numpy
 import paddle.v2 as paddle
@@ -59,7 +60,7 @@ def main():
     Efirst = wordemb(firstword)
     Esecond = wordemb(secondword)
     Ethird = wordemb(thirdword)
-    Efourth = wordemb(fourthword)
+    Efourth = wordemb(fourthword)   
 
     contextemb = paddle.layer.concat(input=[Efirst, Esecond, Ethird, Efourth])
     hidden1 = paddle.layer.fc(
@@ -93,7 +94,7 @@ def main():
             if event.batch_id == 0:
                 print("begin")
                 print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
-                time_begin = time.clock()
+                time_begin = datetime.datetime.now()
             if event.batch_id % 1 == 0:
                 pass_acc += float(1-event.metrics["classification_error_evaluator"])
             if event.batch_id % 100 == 0 and event.batch_id != 0:
@@ -103,8 +104,9 @@ def main():
                         pass_acc/(event.batch_id+1))
 
         if isinstance(event, paddle.event.EndPass):
-            time_end = time.clock()
-            print("Time cost=%f"%(time_end-time_begin))
+            time_end = datetime.datetime.now()
+            print("Time cost=%f"%(time_end-time_begin).seconds)
+            print("Before cost:")
             print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
             print("end")
             pass_acc = 0.
@@ -112,6 +114,8 @@ def main():
                     paddle.batch(paddle.dataset.imikolov.test(word_dict, N), 32))
             print "Pass=%d, Test Acc=%s" % (event.pass_id,
                     float(1-result.metrics["classification_error_evaluator"]))
+            print("After cost:")
+            print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
     train_reader = paddle.batch(paddle.dataset.imikolov.train(word_dict, N), 32)
 
     trainer.train(
@@ -124,3 +128,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+
+
